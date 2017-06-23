@@ -94,8 +94,13 @@ class Seq2Seq(object):
             self.softmax_loss_function = sampled_loss
 
     def init_rnn_cell(self):
-        single_cell =lambda : tf.contrib.rnn.BasicLSTMCell(config.UNITS_NUM, reuse = tf.get_variable_scope().reuse) if self.use_lstm \
+        def single_cell():
+            cell = tf.contrib.rnn.BasicLSTMCell(config.UNITS_NUM, reuse = tf.get_variable_scope().reuse) if self.use_lstm \
                          else tf.contrib.rnn.GRUCell(config.UNITS_NUM, reuse = tf.get_variable_scope().reuse)
+
+            cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=config.DROPOUT)
+            return cell
+         
         if config.NUM_LAYERS > 1:
             self.cell = tf.contrib.rnn.MultiRNNCell([single_cell() for _ in range(config.NUM_LAYERS)])
             self.encoder_cells = tf.contrib.rnn.MultiRNNCell([single_cell() for _ in range(config.NUM_LAYERS)])
